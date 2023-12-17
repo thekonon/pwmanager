@@ -1,8 +1,4 @@
-import sys, pyperclip
-# sys.path.append("res\\utils")
-# from db import DBHandler
-# from pwgen import PWGenerator
-# from hsh import CryptoManager, WrongPasswordError
+import sys, pyperclip, string
 
 from ..utils import PWGenerator, DBHandler, CryptoManager, WrongPasswordError
 
@@ -30,6 +26,36 @@ def PysideSysAttrSetter(fnc):
         fnc(self)
 
     return add_sys_variables
+
+class PasswordToShortError(ValueError):
+    def __init__(self, msg: string):
+        """
+        Error is raised when password is too short
+
+        Args:
+            msg (string): Extra information
+        """
+        self.msg = msg
+
+class PasswordHasNoDigitError(ValueError):
+    def __init__(self, msg: string):
+        """
+        Error is raised when password has no digit
+
+        Args:
+            msg (string): Extra information
+        """
+        self.msg = msg
+
+class PasswordHasNoSpecialCharacterError(ValueError):
+    def __init__(self, msg: string):
+        """
+        Error is raised when password has no special character from string.punctation
+
+        Args:
+            msg (string): Extra information
+        """
+        self.msg = msg
 
 
 class ListItem(object):
@@ -70,17 +96,14 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         # Initialize variables for tracking mouse movements
         self.mousePressPos = None
         self.mouseMovePos = None
-        
+
         self._set_pw_edit_visibity(False)
-    
-    def _QWidget_pressed(self):
-        print("Presses")
-    
+
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.mousePressPos = event.globalPosition()
             self.mouseMovePos = event.globalPosition()
-    
+
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             # Calculate the new position of the window
@@ -89,7 +112,6 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             self.move(new_pos)
             self.mouseMovePos = event.globalPosition()
 
-    
     def try_to_log_in(self):
         try:
             if self._is_pw_valid_password(self.PasswordEdit.text()):
@@ -148,33 +170,47 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             return "".encode()
 
     def _set_pw_edit_visibity(self, is_visible: bool):
-            self.MainPWEdit.setVisible(is_visible)
-            self.SetPasswordText.setVisible(is_visible)
-            self.SetPasswordButton.setVisible(is_visible)
-    
+        self.MainPWEdit.setVisible(is_visible)
+        self.SetPasswordText.setVisible(is_visible)
+        self.SetPasswordButton.setVisible(is_visible)
+
     def _set_new_main_pw(self) -> None:
         new_password = self.MainPWEdit.text()
-        db_handle = DBHandler()
-        hsh_handle = CryptoManager(new_password)
-        pw_bytes = hsh_handle.encrypt_string(new_password)
-        db_handle.save_password("MAINPW", pw_bytes)
+        try:
+            self._password_is_valid(new_password)
+            db_handle = DBHandler()
+            hsh_handle = CryptoManager(new_password)
+            pw_bytes = hsh_handle.encrypt_string(new_password)
+            db_handle.save_password("MAINPW", pw_bytes)
+        except:
+            print("")
+
+    def _password_is_valid(self, password: str) -> bool:
+        # Return True if password meet these criteria
+        if len(password) < 4:
+            return False
+        if not any(c.isdigit() for c in password):
+            return False
+        if not any(c in string.punctuation for c in password):
+            return False
+        return False
 
 
 class PWManagerWindow(QWidget, Ui_PasswordGUI):
-    def __init__(self, password = 'Konon') -> None:
+    def __init__(self, password="Konon") -> None:
         super().__init__()
         # Settup GUI
         self.setupUi(self)
 
         # Connect events to insturments
         self._add_events()
-        
+
         # Set up database communication
         self.db_handle = DBHandler()
-        
+
         # Set up random password generator
         self.pw_gen = PWGenerator(12)
-        
+
         # Set up crypto manager
         self.hsh_handle = CryptoManager(password)
 
@@ -194,7 +230,7 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
         random_password_bytes = self.hsh_handle.encrypt_string(new_random_password)
         self.db_handle.save_password(new_site, random_password_bytes)
         self._display_sites()
-        
+
     def get_password_button_clicked(self):
         site = self.PasswordView.currentIndex().data()
         password_bytes = self.db_handle.get_password(site)
@@ -203,7 +239,7 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
 
     def _get_new_site_name(self) -> str:
         return self.SiteEdit.text()
-    
+
     def _display_sites(self):
         # Get sites from database
         db_handle = DBHandler()
@@ -213,7 +249,7 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
         self.PasswordView.setModel(self.list_model)
 
 
-class MainGuiHandler(QMainWindow, Ui_LoginWindow):
+class MainGuiHandler(QMainWindow):
     """
     Call this class to create Password manager app
 
@@ -247,5 +283,4 @@ class MainGuiHandler(QMainWindow, Ui_LoginWindow):
 
 
 if __name__ == "__main__":
-    
     gui = MainGuiHandler()
