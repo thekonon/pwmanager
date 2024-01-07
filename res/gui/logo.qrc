@@ -4,6 +4,5 @@
   </qresource>
   <qresource prefix="Button">
     <file>xbutton.png</file>
-    <file>xbutton.png</file>
   </qresource>
 </RCC>

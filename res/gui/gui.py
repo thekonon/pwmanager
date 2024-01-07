@@ -139,7 +139,10 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             # Check if the pressed key is the Enter key
             if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
                 # Call the login method when the Enter key is pressed
-                self.try_to_log_in()
+                if not self._is_in_pw_create_mode:
+                    self.try_to_log_in()
+                else:
+                    self._set_new_main_pw()
                 return True  # Event handled
         return False  # Event not handled
 
@@ -190,10 +193,18 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         new_password = self.PasswordEdit.text()
         try:
             self._password_is_valid(new_password)
+            
+            # Save encrypted password if it is ok
             db_handle = DBHandler()
             hsh_handle = CryptoManager(new_password)
             pw_bytes = hsh_handle.encrypt_string(new_password)
             db_handle.save_password("MAINPW", pw_bytes)
+            
+            # Changes mode to login
+            self._set_login_mode()
+            # Remove password - force user to write it again
+            self.PasswordEdit.setText("")
+            
         except PasswordToShortError as ex:
             print(ex)
             self.SetPasswordText.text = ex.msg
@@ -228,16 +239,33 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             raise PasswordHasNoSpecialCharacterError('Pasword must contain at least special character')
         return False
     
-    def _set_create_password_mode(self):
-        """Changes window to set up new main password
+    def _set_login_mode(self):
         """
+        Changes window to set up new main password
+        """
+        # If it is already in set password mode - > do nothing
+        if self._is_in_pw_create_mode:
+            self._is_in_pw_create_mode = False
+            # Display text to user
+            self.SetPasswordText.setVisible(False)
+            
+            # Change login button to create new password button
+            self.LoginButton.setText("Log in")
+            self.LoginButton.clicked.connect(self.try_to_log_in)
+            self.LoginButton.clicked.disconnect(self._set_new_main_pw)
+    
+    def _set_create_password_mode(self):
+        """
+        Changes window to set up new main password
+        """
+        # If it is already in set password mode - > do nothing
         if not self._is_in_pw_create_mode:
             self._is_in_pw_create_mode = True
             # Display text to user
             self.SetPasswordText.setVisible(True)
             
             # Change login button to create new password button
-            self.LoginButton.text = "Create new password"
+            self.LoginButton.setText("Create new password")
             self.LoginButton.clicked.disconnect(self.try_to_log_in)
             self.LoginButton.clicked.connect(self._set_new_main_pw)
         
