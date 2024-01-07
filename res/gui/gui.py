@@ -74,7 +74,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         User presses login button
 
     ## Important
-    You need to add parrent with method "login_successful"
+    Parrent has to have method "login_successful" - called after sucessfull login
 
     Args:
         QWidget:
@@ -93,6 +93,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         self.PasswordEdit.installEventFilter(self)
         self.MainPWEdit.installEventFilter(self)
         self.SetPasswordButton.clicked.connect(self._set_new_main_pw)
+        self.exitButton.clicked.connect(self._exit_button_clicked)
         # Initialize variables for tracking mouse movements
         self.mousePressPos = None
         self.mouseMovePos = None
@@ -220,6 +221,9 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         if not any(c in string.punctuation for c in password):
             raise PasswordHasNoSpecialCharacterError('Pasword must contain at least special character')
         return False
+    
+    def _exit_button_clicked(self):
+        self.parrent.close_application()
 
 
 class PWManagerWindow(QWidget, Ui_PasswordGUI):
@@ -287,14 +291,16 @@ class MainGuiHandler(QMainWindow):
     @PysideSysAttrSetter
     def __init__(self) -> None:
         self.app = QApplication(sys.argv)
-        # super().__init__()
         self.login_window = LoginWindow(self)
         self.login_window.show()
 
         # Bypass login - testing
         # self.login_successful()
-        sys.exit(self.app.exec())
-
+        
+        # Run the main loop
+        self.app.exec()
+        # self.close_application()
+        
     def login_successful(self):
         """
         This method is executed after correct login password is passed
@@ -306,6 +312,11 @@ class MainGuiHandler(QMainWindow):
         # Create window for PWManager and show it
         self.pw_manager_window = PWManagerWindow(self.login_window.PasswordEdit.text())
         self.pw_manager_window.show()
+    
+    def close_application(self):
+        self.close()
+        sys.exit()
+        
 
 
 if __name__ == "__main__":
