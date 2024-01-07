@@ -27,6 +27,11 @@ def PysideSysAttrSetter(fnc):
 
     return add_sys_variables
 
+class PasswordIsMissing(Exception):
+    def __init__(self, msg: str, *args: object) -> None:
+        super().__init__(*args)
+        self.msg = msg
+
 class PasswordToShortError(ValueError):
     def __init__(self, msg: str):
         """
@@ -82,23 +87,29 @@ class LoginWindow(QWidget, Ui_LoginWindow):
     """
 
     def __init__(self, parrent) -> None:
+        """Initialize login window
+        parrent is some kind of controller object with method
+        "login_successfull"
+
+        Args:
+            parrent: some kind of controller object
+        """
         super().__init__()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
         self.parrent = parrent
         self._add_events()
+        
+        self.SetPasswordText.setVisible(False)
+        self._is_in_pw_create_mode = False
 
     def _add_events(self):
         self.LoginButton.clicked.connect(self.try_to_log_in)
         self.PasswordEdit.installEventFilter(self)
-        self.MainPWEdit.installEventFilter(self)
-        self.SetPasswordButton.clicked.connect(self._set_new_main_pw)
         self.exitButton.clicked.connect(self._exit_button_clicked)
         # Initialize variables for tracking mouse movements
         self.mousePressPos = None
         self.mouseMovePos = None
-
-        self._set_pw_edit_visibity(False)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -119,8 +130,9 @@ class LoginWindow(QWidget, Ui_LoginWindow):
                 self.parrent.login_successful()
             else:
                 print("Login was not successful - wrong password")
-        except ValueError as e:
-            print(e)
+        except PasswordIsMissing as ex:
+            print(ex.msg)
+            print("Setup password than try it again")
 
     def eventFilter(self, obj, event):
         if obj is self.PasswordEdit and event.type() == event.KeyPress:
@@ -128,12 +140,6 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
                 # Call the login method when the Enter key is pressed
                 self.try_to_log_in()
-                return True  # Event handled
-        if obj is self.MainPWEdit and event.type() == event.KeyPress:
-            # Check if the pressed key is the Enter key
-            if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
-                # Call the login method when the Enter key is pressed
-                self._set_new_main_pw()
                 return True  # Event handled
         return False  # Event not handled
 
@@ -148,10 +154,13 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         Returns:
             bool: True if password is correct
         """
+        # Get the main password
         try:
             pw_binary = self._find_main_password()
-        except ValueError as e:
-            raise ValueError(e)
+        except PasswordIsMissing as ex:
+            # If there is no main password - > ask user to create one
+            self._set_create_password_mode()
+            raise PasswordIsMissing("Password creation is required")
 
         hsh_handle = CryptoManager(password)
         try:
@@ -162,7 +171,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
 
     def _find_main_password(self) -> bytes:
         """
-        Returns a main password if exists, otherwise ValueError is thowrn
+        Returns a main password if exists, otherwise PasswordIsMissing is thowrn
         
         Raises:
             ValueError: _description_
@@ -175,16 +184,10 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             pw_binary = db_password.get_password("MAINPW")
             return pw_binary
         except ValueError as ex:
-            self._set_pw_edit_visibity(True)
-            raise ValueError("MainPassword was not found - add new one")
-
-    def _set_pw_edit_visibity(self, is_visible: bool):
-        self.MainPWEdit.setVisible(is_visible)
-        self.SetPasswordText.setVisible(is_visible)
-        self.SetPasswordButton.setVisible(is_visible)
+            raise PasswordIsMissing("MainPassword was not found - add new one")
 
     def _set_new_main_pw(self) -> None:
-        new_password = self.MainPWEdit.text()
+        new_password = self.PasswordEdit.text()
         try:
             self._password_is_valid(new_password)
             db_handle = DBHandler()
@@ -193,10 +196,13 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             db_handle.save_password("MAINPW", pw_bytes)
         except PasswordToShortError as ex:
             print(ex)
+            self.SetPasswordText.text = ex.msg
         except PasswordHasNoDigitError as ex:
             print(ex)
+            self.SetPasswordText.text = ex.msg
         except PasswordHasNoSpecialCharacterError as ex:
             print(ex)
+            self.SetPasswordText.text = ex.msg
 
     def _password_is_valid(self, password: str) -> bool:
         """Check if password meet all critteria, returns True
@@ -221,6 +227,20 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         if not any(c in string.punctuation for c in password):
             raise PasswordHasNoSpecialCharacterError('Pasword must contain at least special character')
         return False
+    
+    def _set_create_password_mode(self):
+        """Changes window to set up new main password
+        """
+        if not self._is_in_pw_create_mode:
+            self._is_in_pw_create_mode = True
+            # Display text to user
+            self.SetPasswordText.setVisible(True)
+            
+            # Change login button to create new password button
+            self.LoginButton.text = "Create new password"
+            self.LoginButton.clicked.disconnect(self.try_to_log_in)
+            self.LoginButton.clicked.connect(self._set_new_main_pw)
+        
     
     def _exit_button_clicked(self):
         self.parrent.close_application()
@@ -314,7 +334,6 @@ class MainGuiHandler(QMainWindow):
         self.pw_manager_window.show()
     
     def close_application(self):
-        self.close()
         sys.exit()
         
 

@@ -48,16 +48,16 @@ class Ui_LoginWindow(object):
 
         self.horizontalLayout_3.addWidget(self.welcomeTo)
 
-        self.pushButton = QPushButton(LoginWindow)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setMaximumSize(QSize(30, 30))
-        self.pushButton.setText(u"")
+        self.exitButton = QPushButton(LoginWindow)
+        self.exitButton.setObjectName(u"exitButton")
+        self.exitButton.setMaximumSize(QSize(30, 30))
+        self.exitButton.setText(u"")
         icon = QIcon()
         icon.addFile(u":/Button/xbutton.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.pushButton.setIcon(icon)
-        self.pushButton.setIconSize(QSize(30, 30))
+        self.exitButton.setIcon(icon)
+        self.exitButton.setIconSize(QSize(30, 30))
 
-        self.horizontalLayout_3.addWidget(self.pushButton)
+        self.horizontalLayout_3.addWidget(self.exitButton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_3)
@@ -148,30 +148,20 @@ class Ui_LoginWindow(object):
         self.SetPasswordText.setObjectName(u"SetPasswordText")
         self.SetPasswordText.setEnabled(True)
         font3 = QFont()
+        font3.setFamilies([u"Cambria"])
+        font3.setPointSize(12)
         font3.setBold(False)
         self.SetPasswordText.setFont(font3)
+        self.SetPasswordText.setStyleSheet(u"QLabel {\n"
+"    color: red;\n"
+"}")
+        self.SetPasswordText.setAlignment(Qt.AlignCenter)
+        self.SetPasswordText.setOpenExternalLinks(False)
 
         self.verticalLayout.addWidget(self.SetPasswordText)
 
-        self.MainPWEdit = QLineEdit(LoginWindow)
-        self.MainPWEdit.setObjectName(u"MainPWEdit")
-        self.MainPWEdit.setEnabled(True)
-        self.MainPWEdit.setFont(font3)
-        self.MainPWEdit.setEchoMode(QLineEdit.PasswordEchoOnEdit)
-
-        self.verticalLayout.addWidget(self.MainPWEdit)
-
-        self.SetPasswordButton = QPushButton(LoginWindow)
-        self.SetPasswordButton.setObjectName(u"SetPasswordButton")
-        self.SetPasswordButton.setEnabled(True)
-        self.SetPasswordButton.setFont(font3)
-
-        self.verticalLayout.addWidget(self.SetPasswordButton)
-
         QWidget.setTabOrder(self.PasswordEdit, self.LoginButton)
-        QWidget.setTabOrder(self.LoginButton, self.MainPWEdit)
-        QWidget.setTabOrder(self.MainPWEdit, self.SetPasswordButton)
-        QWidget.setTabOrder(self.SetPasswordButton, self.pushButton)
+        QWidget.setTabOrder(self.LoginButton, self.exitButton)
 
         self.retranslateUi(LoginWindow)
 
@@ -186,7 +176,6 @@ class Ui_LoginWindow(object):
         self.PasswordEdit.setText("")
         self.PasswordEdit.setPlaceholderText(QCoreApplication.translate("LoginWindow", u"PASSWORD", None))
         self.LoginButton.setText(QCoreApplication.translate("LoginWindow", u"Log in", None))
-        self.SetPasswordText.setText(QCoreApplication.translate("LoginWindow", u"New main pass", None))
-        self.SetPasswordButton.setText(QCoreApplication.translate("LoginWindow", u"Set new main pass", None))
+        self.SetPasswordText.setText(QCoreApplication.translate("LoginWindow", u"No main password found in the DB, create new one!", None))
     # retranslateUi
 

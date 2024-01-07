@@ -58,7 +58,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="exitButton">
        <property name="maximumSize">
         <size>
          <width>30</width>
@@ -235,41 +235,24 @@ QPushButton:hover {
      </property>
      <property name="font">
       <font>
+       <family>Cambria</family>
+       <pointsize>12</pointsize>
        <bold>false</bold>
       </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+    color: red;
+}</string>
      </property>
      <property name="text">
-      <string>New main pass</string>
+      <string>No main password found in the DB, create new one!</string>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLineEdit" name="MainPWEdit">
-     <property name="enabled">
-      <bool>true</bool>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
-     <property name="font">
-      <font>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="echoMode">
-      <enum>QLineEdit::PasswordEchoOnEdit</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="SetPasswordButton">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="font">
-      <font>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Set new main pass</string>
+     <property name="openExternalLinks">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -278,9 +261,7 @@ QPushButton:hover {
  <tabstops>
   <tabstop>PasswordEdit</tabstop>
   <tabstop>LoginButton</tabstop>
-  <tabstop>MainPWEdit</tabstop>
-  <tabstop>SetPasswordButton</tabstop>
-  <tabstop>pushButton</tabstop>
+  <tabstop>exitButton</tabstop>
  </tabstops>
  <resources>
   <include location="logo.qrc"/>
