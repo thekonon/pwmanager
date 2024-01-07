@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout,
     QWidget)
-from .logo_rc import *
+import logo_rc
 
 class Ui_LoginWindow(object):
     def setupUi(self, LoginWindow):
@@ -30,23 +30,43 @@ class Ui_LoginWindow(object):
 "}")
         self.verticalLayout = QVBoxLayout(LoginWindow)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.label = QLabel(LoginWindow)
-        self.label.setObjectName(u"label")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalSpacer_5 = QSpacerItem(30, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_5)
+
+        self.welcomeTo = QLabel(LoginWindow)
+        self.welcomeTo.setObjectName(u"welcomeTo")
         font = QFont()
         font.setFamilies([u"Cambria"])
         font.setPointSize(36)
         font.setUnderline(False)
-        self.label.setFont(font)
-        self.label.setStyleSheet(u"color: #fff")
-        self.label.setAlignment(Qt.AlignCenter)
+        self.welcomeTo.setFont(font)
+        self.welcomeTo.setStyleSheet(u"color: #fff")
+        self.welcomeTo.setAlignment(Qt.AlignCenter)
 
-        self.verticalLayout.addWidget(self.label)
+        self.horizontalLayout_3.addWidget(self.welcomeTo)
 
-        self.label_2 = QLabel(LoginWindow)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setAlignment(Qt.AlignCenter)
+        self.pushButton = QPushButton(LoginWindow)
+        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton.setMaximumSize(QSize(30, 30))
+        self.pushButton.setText(u"")
+        icon = QIcon()
+        icon.addFile(u":/Button/xbutton.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.pushButton.setIcon(icon)
+        self.pushButton.setIconSize(QSize(30, 30))
 
-        self.verticalLayout.addWidget(self.label_2)
+        self.horizontalLayout_3.addWidget(self.pushButton)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_3)
+
+        self.Logo = QLabel(LoginWindow)
+        self.Logo.setObjectName(u"Logo")
+        self.Logo.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout.addWidget(self.Logo)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(1)
@@ -148,6 +168,10 @@ class Ui_LoginWindow(object):
 
         self.verticalLayout.addWidget(self.SetPasswordButton)
 
+        QWidget.setTabOrder(self.PasswordEdit, self.LoginButton)
+        QWidget.setTabOrder(self.LoginButton, self.MainPWEdit)
+        QWidget.setTabOrder(self.MainPWEdit, self.SetPasswordButton)
+        QWidget.setTabOrder(self.SetPasswordButton, self.pushButton)
 
         self.retranslateUi(LoginWindow)
 
@@ -156,8 +180,8 @@ class Ui_LoginWindow(object):
 
     def retranslateUi(self, LoginWindow):
         LoginWindow.setWindowTitle(QCoreApplication.translate("LoginWindow", u"Form", None))
-        self.label.setText(QCoreApplication.translate("LoginWindow", u"WELCOME TO", None))
-        self.label_2.setText(QCoreApplication.translate("LoginWindow", u"<html><head/><body><p><img src=\":/logo/logo.png\" width=\"400\" height=\"200\"></p></body></html>", None))
+        self.welcomeTo.setText(QCoreApplication.translate("LoginWindow", u"WELCOME TO", None))
+        self.Logo.setText(QCoreApplication.translate("LoginWindow", u"<html><head/><body><p><img src=\":/logo/logo.png\" width=\"400\" height=\"200\"></p></body></html>", None))
         self.PasswordEdit.setInputMask("")
         self.PasswordEdit.setText("")
         self.PasswordEdit.setPlaceholderText(QCoreApplication.translate("LoginWindow", u"PASSWORD", None))

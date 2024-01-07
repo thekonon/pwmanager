@@ -28,7 +28,7 @@ def PysideSysAttrSetter(fnc):
     return add_sys_variables
 
 class PasswordToShortError(ValueError):
-    def __init__(self, msg: string):
+    def __init__(self, msg: str):
         """
         Error is raised when password is too short
 
@@ -38,7 +38,7 @@ class PasswordToShortError(ValueError):
         self.msg = msg
 
 class PasswordHasNoDigitError(ValueError):
-    def __init__(self, msg: string):
+    def __init__(self, msg: str):
         """
         Error is raised when password has no digit
 
@@ -48,7 +48,7 @@ class PasswordHasNoDigitError(ValueError):
         self.msg = msg
 
 class PasswordHasNoSpecialCharacterError(ValueError):
-    def __init__(self, msg: string):
+    def __init__(self, msg: str):
         """
         Error is raised when password has no special character from string.punctation
 
@@ -160,6 +160,15 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             return False
 
     def _find_main_password(self) -> bytes:
+        """
+        Returns a main password if exists, otherwise ValueError is thowrn
+        
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            bytes: password in bytes if exist
+        """
         db_password = DBHandler()
         try:
             pw_binary = db_password.get_password("MAINPW")
@@ -167,7 +176,6 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         except ValueError as ex:
             self._set_pw_edit_visibity(True)
             raise ValueError("MainPassword was not found - add new one")
-            return "".encode()
 
     def _set_pw_edit_visibity(self, is_visible: bool):
         self.MainPWEdit.setVisible(is_visible)
@@ -182,17 +190,35 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             hsh_handle = CryptoManager(new_password)
             pw_bytes = hsh_handle.encrypt_string(new_password)
             db_handle.save_password("MAINPW", pw_bytes)
-        except:
-            print("")
+        except PasswordToShortError as ex:
+            print(ex)
+        except PasswordHasNoDigitError as ex:
+            print(ex)
+        except PasswordHasNoSpecialCharacterError as ex:
+            print(ex)
 
     def _password_is_valid(self, password: str) -> bool:
-        # Return True if password meet these criteria
-        if len(password) < 4:
-            return False
+        """Check if password meet all critteria, returns True
+        otherwise one of exception is rissen
+
+        Args:
+            password (str): _description_
+
+        Raises:
+            PasswordToShortError: is thrown if password has less than 4 chars
+            PasswordHasNoDigitError
+            PasswordHasNoSpecialCharacterError
+
+        Returns:
+            bool: True if password is ok
+        """
+        min_password_lengt = 4
+        if len(password) < min_password_lengt:
+            raise PasswordToShortError(f'Password must be at least {min_password_lengt} characters')
         if not any(c.isdigit() for c in password):
-            return False
+            raise PasswordHasNoDigitError('Password must contain at least 1 digit')
         if not any(c in string.punctuation for c in password):
-            return False
+            raise PasswordHasNoSpecialCharacterError('Pasword must contain at least special character')
         return False
 
 
