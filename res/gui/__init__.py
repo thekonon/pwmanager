@@ -5,8 +5,13 @@
 # But it is just a import logo_rc
 # So i make resources globaly avaiable
 # This should be fixed before some kind of main release
+# import sys
+# sys.path.append("C:\\VSCode\\PassWordManager\\res\\gui")
 import sys
-sys.path.append("C:\\VSCode\\PassWordManager\\res\\gui")
+import os
+
+# Assuming the current script is located in the passwordmanager directory
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # ________________________________________________________
 
 from .gui import MainGuiHandler
