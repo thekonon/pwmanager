@@ -1,14 +1,20 @@
 from sqlalchemy import create_engine, Column, Integer, String, Table, MetaData, LargeBinary
 from sqlalchemy.orm import declarative_base, Session
 from typing import List
+from datetime import datetime
 
 Base = declarative_base()
 
+def current_date_time() -> str:
+    now = datetime.now()
+    formatted_date_time = now.strftime("%d.%m.%Y-%H:%M:%S")
+    return formatted_date_time
 
 class Password(Base):
     __table__ = Table('pwdata', Base.metadata,
                       Column('id', Integer, primary_key=True),
                       Column('site', String),
+                      Column('date', String),
                       Column('pw', LargeBinary))
 
 class SessionManager():
@@ -50,7 +56,7 @@ class DBHandler:
         """
         session.close()
 
-    def save_password(self, site: str, password: bytes):
+    def save_password(self, site: str, password: bytes, date: str = current_date_time()):
         """
         Save a password for a specific site in the database.
 
@@ -59,7 +65,7 @@ class DBHandler:
             password (bytes): The password to be saved.
         """
         with SessionManager(self._engine) as session:
-            session.add_all([Password(site=site, pw=password)])
+            session.add_all([Password(site=site, pw=password, date = date)])
             session.commit()
 
     def get_password(self, site: str) -> bytes:
@@ -84,7 +90,7 @@ class DBHandler:
 
     def get_all_sites(self) -> List[str]:
         """
-        Return a list of site names from the database.
+        Return a list of site names from the database - except MAINPW.
 
         Returns:
             List[str]: List of strings containing site names.
