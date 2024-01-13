@@ -126,7 +126,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
     def try_to_log_in(self):
         try:
             if self._is_pw_valid_password(self.PasswordEdit.text()):
-                self.parrent.login_successful()
+                self.parrent.login_successful(self.PasswordEdit.text())
             else:
                 print("Login was not successful - wrong password")
         except PasswordIsMissing as ex:
@@ -291,18 +291,36 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
         # Set up crypto manager
         self.hsh_handle = CryptoManager(password)
 
-    def add_site_button_clicked(self):
-        new_site = self._get_new_site_name()
-        new_random_password = self.pw_gen.get_random_password()
-        random_password_bytes = self.hsh_handle.encrypt_string(new_random_password)
-        self.db_handle.save_password(new_site, random_password_bytes)
+    def add_site_button_clicked(self) -> None:
+        """
+        Adds new site
+        """
+        # Step 1 get site name and password
+        site = self._get_new_site_name()
+        if self.generatePasswordCHB.isChecked():
+            password = self.pw_gen.get_random_password()
+        else:
+            password = self.PasswordEdit.text()
+            
+        # Step 2 encrypt password using main password
+        random_password_bytes = self.hsh_handle.encrypt_string(password)
+        
+        # Step 3 save site + password
+        self.db_handle.save_password(site, random_password_bytes)
         self._display_sites()
 
-    def get_password_button_clicked(self):
+    def get_password_check_box_clicked(self):
+        print("Coping password")
         site = self.PasswordView.currentIndex().data()
         password_bytes = self.db_handle.get_password(site)
-        password_string = self.hsh_handle.decrypt_string(password_bytes)
+        try:
+            password_string = self.hsh_handle.decrypt_string(password_bytes)
+        except WrongPasswordError as ex:
+            print("MainPW was not able to decrypt selected sites PW")
+            print(ex.msg)
+            return None
         pyperclip.copy(password_string)
+        print("Password copied!")
 
     def _get_new_site_name(self) -> str:
         return self.SiteEdit.text()
@@ -313,7 +331,7 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
 
     def _add_events(self):
         self.AddSiteButton.clicked.connect(self.add_site_button_clicked)
-        self.GetPasswordButton.clicked.connect(self.get_password_button_clicked)
+        self.GetPasswordButton.clicked.connect(self.get_password_check_box_clicked)
         self.generatePasswordCHB.clicked.connect(self._generate_pw_clicked)
 
         # Create a ListModel for handling displaying passwords
@@ -323,6 +341,9 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
         self._display_sites()
     
     def _display_sites(self):
+        """
+        Refresh sites list
+        """
         # Get sites from database
         db_handle = DBHandler()
         self.list_model.setStringList(db_handle.get_all_sites())
@@ -346,23 +367,29 @@ class MainGuiHandler(QMainWindow):
         self.login_window = LoginWindow(self)
         self.login_window.show()
 
-        # Bypass login - testing
-        self.login_successful()
+        # Bypass login - testing - insert mainPW
+        self.login_successful(password="")
         
         # Run the main loop
         self.app.exec()
         # self.close_application()
         
-    def login_successful(self):
+    def login_successful(self, password: str = ""):
         """
         This method is executed after correct login password is passed
+        
+        password is then used for decrypting
         """
         print("Login was successfull")
         # Close Login window
         self.login_window.close()
+        
+        # If no password is given - try to take it from password edit
+        if not password:
+            password = self.login_window.PasswordEdit.text()
 
         # Create window for PWManager and show it
-        self.pw_manager_window = PWManagerWindow(self.login_window.PasswordEdit.text())
+        self.pw_manager_window = PWManagerWindow(password)
         self.pw_manager_window.show()
     
     def close_application(self):
