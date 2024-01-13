@@ -69,7 +69,6 @@ class ListItem(object):
         self.data = []
         self.text = "Hi!" if not text else text
 
-
 class LoginWindow(QWidget, Ui_LoginWindow):
     """
     Class for handling PySide LoginWidget
@@ -292,16 +291,6 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
         # Set up crypto manager
         self.hsh_handle = CryptoManager(password)
 
-    def _add_events(self):
-        self.AddSiteButton.clicked.connect(self.add_site_button_clicked)
-        self.GetPasswordButton.clicked.connect(self.get_password_button_clicked)
-
-        # Create a ListModel for handling displaying passwords
-        self.list_model = QStringListModel()
-
-        # Fill QListView instrument with sites
-        self._display_sites()
-
     def add_site_button_clicked(self):
         new_site = self._get_new_site_name()
         new_random_password = self.pw_gen.get_random_password()
@@ -318,6 +307,21 @@ class PWManagerWindow(QWidget, Ui_PasswordGUI):
     def _get_new_site_name(self) -> str:
         return self.SiteEdit.text()
 
+    def _generate_pw_clicked(self) -> None:
+        self.PasswordEdit.setText("")
+        self.PasswordEdit.setEnabled(not self.generatePasswordCHB.isChecked())
+
+    def _add_events(self):
+        self.AddSiteButton.clicked.connect(self.add_site_button_clicked)
+        self.GetPasswordButton.clicked.connect(self.get_password_button_clicked)
+        self.generatePasswordCHB.clicked.connect(self._generate_pw_clicked)
+
+        # Create a ListModel for handling displaying passwords
+        self.list_model = QStringListModel()
+
+        # Fill QListView instrument with sites
+        self._display_sites()
+    
     def _display_sites(self):
         # Get sites from database
         db_handle = DBHandler()
@@ -343,7 +347,7 @@ class MainGuiHandler(QMainWindow):
         self.login_window.show()
 
         # Bypass login - testing
-        # self.login_successful()
+        self.login_successful()
         
         # Run the main loop
         self.app.exec()
