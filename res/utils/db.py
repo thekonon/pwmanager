@@ -63,6 +63,8 @@ class DBHandler:
         Args:
             site (str): The name of the site.
             password (bytes): The password to be saved.
+        (Optional)
+            date (str): Date of that password
         """
         with SessionManager(self._engine) as session:
             session.add_all([Password(site=site, pw=password, date = date)])
