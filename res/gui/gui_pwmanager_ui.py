@@ -48,10 +48,10 @@ class Ui_PasswordGUI(object):
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.SiteEdit)
 
-        self.checkBox = QCheckBox(self.formLayoutWidget)
-        self.checkBox.setObjectName(u"checkBox")
+        self.generatePasswordCHB = QCheckBox(self.formLayoutWidget)
+        self.generatePasswordCHB.setObjectName(u"generatePasswordCHB")
 
-        self.formLayout.setWidget(1, QFormLayout.SpanningRole, self.checkBox)
+        self.formLayout.setWidget(1, QFormLayout.SpanningRole, self.generatePasswordCHB)
 
         self.AddSiteButton = QPushButton(self.formLayoutWidget)
         self.AddSiteButton.setObjectName(u"AddSiteButton")
@@ -69,10 +69,10 @@ class Ui_PasswordGUI(object):
 
         self.formLayout.setItem(4, QFormLayout.SpanningRole, self.verticalSpacer)
 
-        self.SiteEdit_2 = QLineEdit(self.formLayoutWidget)
-        self.SiteEdit_2.setObjectName(u"SiteEdit_2")
+        self.PasswordEdit = QLineEdit(self.formLayoutWidget)
+        self.PasswordEdit.setObjectName(u"PasswordEdit")
 
-        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.SiteEdit_2)
+        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.PasswordEdit)
 
         self.label_2 = QLabel(self.formLayoutWidget)
         self.label_2.setObjectName(u"label_2")
@@ -81,9 +81,9 @@ class Ui_PasswordGUI(object):
         self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_2)
 
         QWidget.setTabOrder(self.PasswordView, self.SiteEdit)
-        QWidget.setTabOrder(self.SiteEdit, self.checkBox)
-        QWidget.setTabOrder(self.checkBox, self.SiteEdit_2)
-        QWidget.setTabOrder(self.SiteEdit_2, self.AddSiteButton)
+        QWidget.setTabOrder(self.SiteEdit, self.generatePasswordCHB)
+        QWidget.setTabOrder(self.generatePasswordCHB, self.PasswordEdit)
+        QWidget.setTabOrder(self.PasswordEdit, self.AddSiteButton)
         QWidget.setTabOrder(self.AddSiteButton, self.GetPasswordButton)
 
         self.retranslateUi(PasswordGUI)
@@ -94,7 +94,7 @@ class Ui_PasswordGUI(object):
     def retranslateUi(self, PasswordGUI):
         PasswordGUI.setWindowTitle(QCoreApplication.translate("PasswordGUI", u"Form", None))
         self.label.setText(QCoreApplication.translate("PasswordGUI", u"Site:", None))
-        self.checkBox.setText(QCoreApplication.translate("PasswordGUI", u"Generate random password", None))
+        self.generatePasswordCHB.setText(QCoreApplication.translate("PasswordGUI", u"Generate random password", None))
         self.AddSiteButton.setText(QCoreApplication.translate("PasswordGUI", u"Add", None))
         self.GetPasswordButton.setText(QCoreApplication.translate("PasswordGUI", u"Copy - GET", None))
         self.label_2.setText(QCoreApplication.translate("PasswordGUI", u"Password", None))

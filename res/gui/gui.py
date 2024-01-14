@@ -368,7 +368,7 @@ class MainGuiHandler(QMainWindow):
         self.login_window.show()
 
         # Bypass login - testing - insert mainPW
-        self.login_successful(password="")
+        # self.login_successful(password="")
         
         # Run the main loop
         self.app.exec()
