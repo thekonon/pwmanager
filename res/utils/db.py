@@ -1,28 +1,49 @@
-from sqlalchemy import create_engine, Column, Integer, String, Table, MetaData, LargeBinary
-from sqlalchemy.orm import declarative_base, Session
-from typing import List
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    Table,
+    MetaData,
+    LargeBinary,
+)
+from sqlalchemy.orm import declarative_base, Session, sessionmaker
 
 Base = declarative_base()
+engine = create_engine("sqlite:///main.db")
+session_local = sessionmaker(engine)
+
+Base.metadata.create_all(bind=engine)
 
 
 class Password(Base):
-    __table__ = Table('pwdata', Base.metadata,
-                      Column('id', Integer, primary_key=True),
-                      Column('site', String),
-                      Column('pw', LargeBinary))
+    __table__ = Table(
+        "pwdata",
+        Base.metadata,
+        Column("id", Integer, primary_key=True),
+        Column("site", String),
+        Column("pw", LargeBinary),
+    )
 
-class SessionManager():
+    __tablename__ = "pwdata"
+
+    id = Integer()
+
+
+class SessionManager:
     def __init__(self, engine) -> None:
         self.engine = engine
+
     def __enter__(self):
         self.session = Session(self.engine)
         return self.session
+
     def __exit__(self, *args):
         self.session.close()
-    
-    
+
+
 class DBHandler:
-    def __init__(self, database_url: str = 'sqlite:///main.db') -> None:
+    def __init__(self, database_url: str = "sqlite:///main.db") -> None:
         """
         Initialize the DBHandler with the specified database URL.
 
@@ -71,18 +92,18 @@ class DBHandler:
 
         Returns:
             bytes: The password bytes.
-        
+
         Raises:
             ValueError: If the site is not found in the database.
         """
-        with self._create_session() as session:
+        with session_local() as session:
             pw_data = session.query(Password).filter(Password.site == site).first()
             if pw_data:
                 return pw_data.pw
             else:
                 raise ValueError("Site is not in the database!")
 
-    def get_all_sites(self) -> List[str]:
+    def get_all_sites(self) -> list[str]:
         """
         Return a list of site names from the database.
 
@@ -94,7 +115,7 @@ class DBHandler:
             return [data.site for data in pw_data]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     handle = DBHandler()
     handle.save_password("Main", "WAAA".encode())
     print(handle.get_password("Main"))

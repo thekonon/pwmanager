@@ -78,9 +78,8 @@ class PasswordHasNoSpecialCharacterError(ValueError):
         self.msg = msg
 
 
-class ListItem(object):
+class ListItem:
     def __init__(self, text="", parent=None):
-        super(ListItem, self).__init__()
         self.data = []
         self.text = "Hi!" if not text else text
 
@@ -213,13 +212,13 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             db_handle.save_password("MAINPW", pw_bytes)
         except PasswordToShortError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
         except PasswordHasNoDigitError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
         except PasswordHasNoSpecialCharacterError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
 
     def _password_is_valid(self, password: str) -> bool:
         """Check if password meet all critteria, returns True
