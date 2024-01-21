@@ -20,6 +20,8 @@ from PySide6.QtCore import (
     QEvent,
     QPoint,
 )
+
+from PySide6 import QtGui
 from .gui_login_ui import Ui_LoginWindow
 from .gui_pwmanager_ui import Ui_PasswordGUI
 
@@ -109,7 +111,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         """
         super().__init__()
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
         self.parrent = parrent
         self._add_events()
 
@@ -124,16 +126,18 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         self.mousePressPos = None
         self.mouseMovePos = None
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
         if event.button() == Qt.LeftButton:
             self.mousePressPos = event.globalPosition()
             self.mouseMovePos = event.globalPosition()
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         if event.buttons() == Qt.LeftButton:
             # Calculate the new position of the window
+            if self.mouseMovePos is None:
+                return
             delta = QPointF(event.globalPosition() - self.mouseMovePos)
-            new_pos = self.pos() + QPoint(delta.x(), delta.y())
+            new_pos = self.pos() + QPoint(int(delta.x()), int(delta.y()))
             self.move(new_pos)
             self.mouseMovePos = event.globalPosition()
 
@@ -147,14 +151,14 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             print(ex.msg)
             print("Setup password than try it again")
 
-    def eventFilter(self, obj, event: QEvent):
-        if obj is self.PasswordEdit and event.type() == QEvent.Type.KeyPress:
-            # Check if the pressed key is the Enter key
-            if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
-                # Call the login method when the Enter key is pressed
-                self.try_to_log_in()
-                return True  # Event handled
-        return False  # Event not handled
+    # def eventFilter(self, obj, event: QEvent):
+    #     if obj is self.PasswordEdit and event.type() == QEvent.Type.KeyPress:
+    #         # Check if the pressed key is the Enter key
+    #         if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
+    #             # Call the login method when the Enter key is pressed
+    #             self.try_to_log_in()
+    #             return True  # Event handled
+    #     return False  # Event not handled
 
     def _is_pw_valid_password(self, password: str) -> bool:
         """
@@ -253,7 +257,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             self.SetPasswordText.setVisible(True)
 
             # Change login button to create new password button
-            self.LoginButton.text = "Create new password"
+            self.LoginButton.setText("Create new password")
             self.LoginButton.clicked.disconnect(self.try_to_log_in)
             self.LoginButton.clicked.connect(self._set_new_main_pw)
 
