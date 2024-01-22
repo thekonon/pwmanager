@@ -10,7 +10,18 @@ from PySide6.QtWidgets import (
     QDialog,
     QListWidgetItem,
 )
-from PySide6.QtCore import Qt, QThread, Signal, Slot, QStringListModel, QPointF, QPoint
+from PySide6.QtCore import (
+    Qt,
+    QThread,
+    Signal,
+    Slot,
+    QStringListModel,
+    QPointF,
+    QEvent,
+    QPoint,
+)
+
+from PySide6 import QtGui
 from .gui_login_ui import Ui_LoginWindow
 from .gui_pwmanager_ui import Ui_PasswordGUI
 
@@ -27,10 +38,12 @@ def PysideSysAttrSetter(fnc):
 
     return add_sys_variables
 
+
 class PasswordIsMissing(Exception):
     def __init__(self, msg: str, *args: object) -> None:
         super().__init__(*args)
         self.msg = msg
+
 
 class PasswordToShortError(ValueError):
     def __init__(self, msg: str):
@@ -42,6 +55,7 @@ class PasswordToShortError(ValueError):
         """
         self.msg = msg
 
+
 class PasswordHasNoDigitError(ValueError):
     def __init__(self, msg: str):
         """
@@ -51,6 +65,7 @@ class PasswordHasNoDigitError(ValueError):
             msg (string): Extra information
         """
         self.msg = msg
+
 
 class PasswordHasNoSpecialCharacterError(ValueError):
     def __init__(self, msg: str):
@@ -63,9 +78,8 @@ class PasswordHasNoSpecialCharacterError(ValueError):
         self.msg = msg
 
 
-class ListItem(object):
+class ListItem:
     def __init__(self, text="", parent=None):
-        super(ListItem, self).__init__()
         self.data = []
         self.text = "Hi!" if not text else text
 
@@ -95,10 +109,10 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         """
         super().__init__()
         self.setupUi(self)
-        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint)
         self.parrent = parrent
         self._add_events()
-        
+
         self.SetPasswordText.setVisible(False)
         self._is_in_pw_create_mode = False
 
@@ -110,16 +124,18 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         self.mousePressPos = None
         self.mouseMovePos = None
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
         if event.button() == Qt.LeftButton:
             self.mousePressPos = event.globalPosition()
             self.mouseMovePos = event.globalPosition()
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         if event.buttons() == Qt.LeftButton:
             # Calculate the new position of the window
+            if self.mouseMovePos is None:
+                return
             delta = QPointF(event.globalPosition() - self.mouseMovePos)
-            new_pos = self.pos() + QPoint(delta.x(), delta.y())
+            new_pos = self.pos() + QPoint(int(delta.x()), int(delta.y()))
             self.move(new_pos)
             self.mouseMovePos = event.globalPosition()
 
@@ -133,17 +149,14 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             print(ex.msg)
             print("Setup password than try it again")
 
-    def eventFilter(self, obj, event):
-        if obj is self.PasswordEdit and event.type() == event.KeyPress:
-            # Check if the pressed key is the Enter key
-            if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
-                # Call the login method when the Enter key is pressed
-                if not self._is_in_pw_create_mode:
-                    self.try_to_log_in()
-                else:
-                    self._set_new_main_pw()
-                return True  # Event handled
-        return False  # Event not handled
+    # def eventFilter(self, obj, event: QEvent):
+    #     if obj is self.PasswordEdit and event.type() == QEvent.Type.KeyPress:
+    #         # Check if the pressed key is the Enter key
+    #         if event.key() == Qt.Key.Key_Enter or event.key() == Qt.Key.Key_Return:
+    #             # Call the login method when the Enter key is pressed
+    #             self.try_to_log_in()
+    #             return True  # Event handled
+    #     return False  # Event not handled
 
     def _is_pw_valid_password(self, password: str) -> bool:
         """
@@ -174,7 +187,7 @@ class LoginWindow(QWidget, Ui_LoginWindow):
     def _find_main_password(self) -> bytes:
         """
         Returns a main password if exists, otherwise PasswordIsMissing is thowrn
-        
+
         Raises:
             ValueError: _description_
 
@@ -206,13 +219,13 @@ class LoginWindow(QWidget, Ui_LoginWindow):
             
         except PasswordToShortError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
         except PasswordHasNoDigitError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
         except PasswordHasNoSpecialCharacterError as ex:
             print(ex)
-            self.SetPasswordText.text = ex.msg
+            self.SetPasswordText.setText(ex.msg)
 
     def _password_is_valid(self, password: str) -> bool:
         """Check if password meet all critteria, returns True
@@ -231,44 +244,29 @@ class LoginWindow(QWidget, Ui_LoginWindow):
         """
         min_password_lengt = 4
         if len(password) < min_password_lengt:
-            raise PasswordToShortError(f'Password must be at least {min_password_lengt} characters')
+            raise PasswordToShortError(
+                f"Password must be at least {min_password_lengt} characters"
+            )
         if not any(c.isdigit() for c in password):
-            raise PasswordHasNoDigitError('Password must contain at least 1 digit')
+            raise PasswordHasNoDigitError("Password must contain at least 1 digit")
         if not any(c in string.punctuation for c in password):
-            raise PasswordHasNoSpecialCharacterError('Pasword must contain at least special character')
+            raise PasswordHasNoSpecialCharacterError(
+                "Pasword must contain at least special character"
+            )
         return False
-    
-    def _set_login_mode(self):
-        """
-        Changes window to set up new main password
-        """
-        # If it is already in set password mode - > do nothing
-        if self._is_in_pw_create_mode:
-            self._is_in_pw_create_mode = False
-            # Display text to user
-            self.SetPasswordText.setVisible(False)
-            
-            # Change login button to create new password button
-            self.LoginButton.setText("Log in")
-            self.LoginButton.clicked.connect(self.try_to_log_in)
-            self.LoginButton.clicked.disconnect(self._set_new_main_pw)
-    
+
     def _set_create_password_mode(self):
-        """
-        Changes window to set up new main password
-        """
-        # If it is already in set password mode - > do nothing
+        """Changes window to set up new main password"""
         if not self._is_in_pw_create_mode:
             self._is_in_pw_create_mode = True
             # Display text to user
             self.SetPasswordText.setVisible(True)
-            
+
             # Change login button to create new password button
             self.LoginButton.setText("Create new password")
             self.LoginButton.clicked.disconnect(self.try_to_log_in)
             self.LoginButton.clicked.connect(self._set_new_main_pw)
-        
-    
+
     def _exit_button_clicked(self):
         self.parrent.close_application()
 
@@ -367,14 +365,14 @@ class MainGuiHandler(QMainWindow):
         self.login_window = LoginWindow(self)
         self.login_window.show()
 
-        # Bypass login - testing - insert mainPW
-        # self.login_successful(password="")
-        
+        # Bypass login - testing
+        # self.login_successful()
+
         # Run the main loop
         self.app.exec()
         # self.close_application()
-        
-    def login_successful(self, password: str = ""):
+
+    def login_successful(self):
         """
         This method is executed after correct login password is passed
         
@@ -391,10 +389,9 @@ class MainGuiHandler(QMainWindow):
         # Create window for PWManager and show it
         self.pw_manager_window = PWManagerWindow(password)
         self.pw_manager_window.show()
-    
+
     def close_application(self):
         sys.exit()
-        
 
 
 if __name__ == "__main__":

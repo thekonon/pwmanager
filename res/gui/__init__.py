@@ -11,7 +11,10 @@ import sys
 import os
 
 # Assuming the current script is located in the passwordmanager directory
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # ________________________________________________________
 
-from .gui import MainGuiHandler
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).parent.resolve()))
+
+from .gui import MainGuiHandler  # noqa: F401, E402
