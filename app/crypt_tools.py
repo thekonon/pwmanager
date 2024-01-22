@@ -5,7 +5,6 @@ from cryptography.fernet import Fernet
 import base64
 
 from .exceptions import WrongPasswordError
-from pieceful import Piece
 
 
 # TODO
@@ -14,7 +13,6 @@ class CryptoManagerAbstract(Protocol):
         ...
 
 
-@Piece("crypto_manager")
 class CryptoManager:
     """
     This class is used for ecrypting and decrypting string

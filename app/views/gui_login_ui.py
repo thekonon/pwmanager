@@ -51,7 +51,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-import logo_rc
+from . import logo_rc
 
 
 class Ui_LoginWindow(object):

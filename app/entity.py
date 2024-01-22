@@ -8,7 +8,7 @@ def create_all(engine: Engine):
     db.metadata.create_all(bind=engine)
 
 
-class Password(db.Model):
+class Password(db):
     __tablename__ = "pwdata"
 
     id = Column(Integer, primary_key=True)

@@ -25,10 +25,6 @@ class Password(Base):
         Column("pw", LargeBinary),
     )
 
-    __tablename__ = "pwdata"
-
-    id = Integer()
-
 
 class SessionManager:
     def __init__(self, engine) -> None:

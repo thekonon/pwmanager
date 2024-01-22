@@ -1,9 +1,9 @@
 from .gui_login_ui import Ui_LoginWindow
-from PySide6.QtWidgets import QWidget, QMainWindow
+from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, QPoint, QPointF
 from PySide6 import QtGui
 
-from typing import Annotated
+# from typing import Annotated
 
 from pieceful import Piece
 
